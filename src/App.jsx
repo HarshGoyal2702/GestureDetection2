@@ -20,11 +20,13 @@ function App() {
   const [frontCamera, setFrontCamera] = useState('user');
   // to check the system has the backcamera or not
   const [backCameraAvailable, setBackCameraAvailable] = useState(false);
+  const [message, setMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
 
   const [detectedGesture, setDetectedGesture] = useState('No Detection');
   const [fingerPositions, setFingerPositions] = useState([]);
-  const [gestureImage, setGestureImage] = useState(null);
 
+  const [gestureImage, setGestureImage] = useState(null);
   const fingerImages = [
     number1, number2, number3, number4, number5
   ];
@@ -57,10 +59,15 @@ function App() {
       if (backCamera) {
         setBackCameraAvailable(true);
         setFrontCamera('environment'); // Set the camera to back if available
+        setMessage('Back camera is available.')
         console.log('Back camera is available.');
+        setTimeout(() => setBackCameraAvailable(false), 10000);
       } else {
-        setBackCameraAvailable(false);
+        setBackCameraAvailable(true);
         console.log('Back camera is not present.');
+        setMessage('Back camera is not present.');
+        setToastType('error')
+        setTimeout(() => setBackCameraAvailable(false), 10000);
         setFrontCamera('user'); // Use front camera if no back camera is found
       }
     } catch (error) {
@@ -165,12 +172,12 @@ function App() {
         <div className="card card-compact shadow-xl ">
           <figure className='relative'>
             <div style={{ position: 'absolute', right: 10, top: 100, width: '100px' }}>
-              <img src={gestureImage} style={{ width: '100%' }} alt="Detected Gesture" />
+              <img src={gestureImage} style={{ width: '100%' }} alt='' />
             </div>
             {fingerPositions.map((pos, index) => (
               <img
                 key={index}
-                src={fingerImages[index] || "default_finger.png"} // Use a default if index exceeds array
+                src={fingerImages[index]} // Use a default if index exceeds array
                 alt={`Finger ${index + 1}`}
                 style={{
                   position: "absolute",
@@ -221,6 +228,22 @@ function App() {
           </div>
         </div>
       </div >
+      {
+        backCameraAvailable && (<div role="alert" className={`alert alert-${toastType} w-72 m-5`}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 shrink-0 stroke-current"
+            fill="none"
+            viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{`${message}`}</span>
+        </div>)
+      }
     </>
   )
 }
