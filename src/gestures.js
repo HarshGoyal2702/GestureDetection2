@@ -77,8 +77,19 @@
 
 export const estimateGesture = (landmarks) => {
     if (!landmarks || landmarks.length < 21) return { gesture: "No Gesture Detected", raisedFingers: [] };
-
+    let extendedFingers = 0
     const isFingerUp = (tip, base) => tip[1] < base[1];
+    let fingertips = [];
+
+    // Finger landmark indices based on the handpose model
+    const fingerTipsIndices = [4, 8, 12, 16, 20]; // Thumb, Index, Middle, Ring, Pinky
+
+    fingerTipsIndices.forEach((tipIdx, i) => {
+        if (landmarks[tipIdx][1] < landmarks[tipIdx - 2][1]) {
+            extendedFingers++;
+            fingertips.push({ x: landmarks[tipIdx][0], y: landmarks[tipIdx][1] });
+        }
+    });
 
     const fingers = {
         thumb: landmarks[4][0] > landmarks[2][0], // Thumb moves sideways
@@ -105,5 +116,5 @@ export const estimateGesture = (landmarks) => {
     const key = Object.values(fingers).map((b) => (b ? "1" : "0")).join("");
     const gesture = gestures[key] || "No Gesture Detected";
 
-    return { gesture, raisedFingers };
+    return { gesture, fingertips };
 };

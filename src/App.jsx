@@ -22,9 +22,12 @@ function App() {
   const [backCameraAvailable, setBackCameraAvailable] = useState(false);
 
   const [detectedGesture, setDetectedGesture] = useState('No Detection');
-
+  const [fingerPositions, setFingerPositions] = useState([]);
   const [gestureImage, setGestureImage] = useState(null);
 
+  const fingerImages = [
+    number1, number2, number3, number4, number5
+  ];
 
   const loadHandposeModel = async () => {
     try {
@@ -93,10 +96,34 @@ function App() {
         //   fiveGesture,
         //   fp.Gestures.ThumbsUpGesture,
         // ]);
-        const detectedGesture = estimateGesture(hands[0].landmarks);
+        const { gesture: detectedGesture, fingertips } = estimateGesture(hands[0].landmarks);
+        setFingerPositions(fingertips);
         // const estimatedGestures = await gestureEstimator.estimate(hands[0].landmarks, 8);
         console.log(detectedGesture);
-        setDetectedGesture(detectedGesture.gesture);
+        setDetectedGesture(detectedGesture);
+        switch (detectedGesture) {
+          case 'thumbsUp':
+            setGestureImage(thumbsUp);
+            break;
+          case 'one':
+            setGestureImage(number1);
+            break;
+          case 'two':
+            setGestureImage(number2);
+            break;
+          case 'three':
+            setGestureImage(number3);
+            break;
+          case 'four':
+            setGestureImage(number4);
+            break;
+          case 'five':
+            setGestureImage(number5);
+            break;
+          default:
+            setGestureImage(null);
+        }
+
         // setDetectionStatus('Gesture Detected');
 
         // if (estimatedGestures.gestures.length > 0) {
@@ -130,13 +157,6 @@ function App() {
         //   setDetectedGesture(highestConfidenceGesture.name);
         // }
       }
-      const drawYellowCircles = (landmarks) => {
-        const ctx = canvasRef.current.getContext('2d');
-        const raisedFingers = detectGesture(landmarks).raisedFingers;
-
-        
-
-      };
     }
   }
   return (
@@ -147,6 +167,20 @@ function App() {
             <div style={{ position: 'absolute', right: 10, top: 100, width: '100px' }}>
               <img src={gestureImage} style={{ width: '100%' }} alt="Detected Gesture" />
             </div>
+            {fingerPositions.map((pos, index) => (
+              <img
+                key={index}
+                src={fingerImages[index] || "default_finger.png"} // Use a default if index exceeds array
+                alt={`Finger ${index + 1}`}
+                style={{
+                  position: "absolute",
+                  left: `${pos.x}px`,
+                  top: `${pos.y}px`,
+                  width: "30px",
+                  height: "30px",
+                }}
+              />
+            ))}
             {!detection ? (
               <img src={noUser} alt="User Placeholder" />
             ) : (
