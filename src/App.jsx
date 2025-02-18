@@ -24,9 +24,8 @@ function App() {
   const [toastType, setToastType] = useState('success');
 
   const [detectedGesture, setDetectedGesture] = useState('No Detection');
-  const [fingerPositions, setFingerPositions] = useState([]);
-
   const [gestureImage, setGestureImage] = useState(null);
+  const [palmCenter, setPalmCenter] = useState(null);
   const fingerImages = [
     number1, number2, number3, number4, number5
   ];
@@ -90,79 +89,25 @@ function App() {
       canvasRef.current.height = videoHeight;
 
       const hands = await model.estimateHands(video);
+      console.log(`${hands[0]} hands h ye toh`)
       const ctx = canvasRef.current.getContext('2d');
-      drawHand(hands, ctx);
+      // drawHand(hands, ctx);
       // console.log("hand detected");
 
       if (hands.length > 0) {
-        // const gestureEstimator = new fp.GestureEstimator([
-        //   oneGesture,
-        //   twoGesture,
-        //   threeGesture,
-        //   fourGesture,
-        //   fiveGesture,
-        //   fp.Gestures.ThumbsUpGesture,
-        // ]);
-        const { gesture: detectedGesture, fingertips } = estimateGesture(hands[0].landmarks);
-        setFingerPositions(fingertips);
-        // const estimatedGestures = await gestureEstimator.estimate(hands[0].landmarks, 8);
-        console.log(detectedGesture);
+        const { gesture: detectedGesture, fingertips, palmCenter } = estimateGesture(hands[0].landmarks);
+
+        setPalmCenter(palmCenter);
         setDetectedGesture(detectedGesture);
-        switch (detectedGesture) {
-          case 'thumbsUp':
-            setGestureImage(thumbsUp);
-            break;
-          case 'one':
-            setGestureImage(number1);
-            break;
-          case 'two':
-            setGestureImage(number2);
-            break;
-          case 'three':
-            setGestureImage(number3);
-            break;
-          case 'four':
-            setGestureImage(number4);
-            break;
-          case 'five':
-            setGestureImage(number5);
-            break;
-          default:
-            setGestureImage(null);
-        }
-
-        // setDetectionStatus('Gesture Detected');
-
-        // if (estimatedGestures.gestures.length > 0) {
-        //   const highestConfidenceGesture = estimatedGestures.gestures.reduce((prev, current) =>
-        //     prev.confidence > current.confidence ? prev : current
-        //   );
-        //   switch (highestConfidenceGesture.name) {
-        //     case 'thumbs_up':
-        //       setGestureImage(thumbsUp);
-        //       break;
-        //     case 'one':
-        //       setGestureImage(number1);
-        //       break;
-        //     case 'two':
-        //       setGestureImage(number2);
-        //       break;
-        //     case 'three':
-        //       setGestureImage(number3);
-        //       break;
-        //     case 'four':
-        //       setGestureImage(number4);
-        //       break;
-        //     case 'five':
-        //       setGestureImage(number5);
-        //       break;
-        //     default:
-        //       setGestureImage(null);
-        //   }
-
-        //   console.log('Detected Gesture:', highestConfidenceGesture.name);
-        //   setDetectedGesture(highestConfidenceGesture.name);
-        // }
+        setGestureImage(
+          detectedGesture === 'thumbsUp' ? thumbsUp :
+            detectedGesture === 'one' ? number1 :
+              detectedGesture === 'two' ? number2 :
+                detectedGesture === 'three' ? number3 :
+                  detectedGesture === 'four' ? number4 :
+                    detectedGesture === 'five' ? number5 :
+                      null
+        );
       }
     }
   }
@@ -171,23 +116,20 @@ function App() {
       <div className='flex items-center justify-center mt-8 '>
         <div className="card card-compact shadow-xl ">
           <figure className='relative'>
-            <div style={{ position: 'absolute', right: 10, top: 100, width: '100px' }}>
-              <img src={gestureImage} style={{ width: '100%' }} alt='' />
-            </div>
-            {fingerPositions.map((pos, index) => (
+            {palmCenter && gestureImage && (
               <img
-                key={index}
-                src={fingerImages[index]} // Use a default if index exceeds array
-                alt={`Finger ${index + 1}`}
+                src={gestureImage}
+                alt="Detected Gesture"
                 style={{
-                  position: "absolute",
-                  left: `${pos.x}px`,
-                  top: `${pos.y}px`,
-                  width: "30px",
-                  height: "30px",
+                  position: 'absolute',
+                  left: palmCenter.x,
+                  top: palmCenter.y,
+                  transform: 'translate(-50%, -50%)',
+                  width: '100px',
+                  height: '100px'
                 }}
               />
-            ))}
+            )}
             {!detection ? (
               <img src={noUser} alt="User Placeholder" />
             ) : (
